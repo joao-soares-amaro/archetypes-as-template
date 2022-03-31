@@ -1,0 +1,7 @@
+server:
+  port: 8081
+
+springdoc:
+  show-actuator: true
+  swagger-ui:
+    path: /swagger-ui.html

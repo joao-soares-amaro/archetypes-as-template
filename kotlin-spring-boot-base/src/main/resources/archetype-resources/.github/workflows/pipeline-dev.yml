@@ -1,0 +1,232 @@
+name: Pipeline-Dev
+
+on: workflow_dispatch
+
+env:
+  AWS_REGION: us-east-1
+  APP_NAMESPACE: ${artifactId}
+  APP_NAME: ${artifactId}
+  # dev vars
+  AWS_DEV_ACCESS_KEY_ID: ${{ secrets.AWS_DEV_ACCESS_KEY_ID }}
+  AWS_DEV_SECRET_ACCESS_KEY: ${{ secrets.AWS_DEV_SECRET_ACCESS_KEY }}
+  AWS_DEV_ACCOUNT_ID: ${{ secrets.AWS_DEV_ACCOUNT_ID }}
+  KUBE_CONFIG_DATA: ${{ secrets.AWS_DEV_EKS_KUBE_CONFIG }}
+  #prod vars
+  AWS_PROD_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+  AWS_PROD_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+  AWS_PROD_ACCOUNT_ID: ${{ secrets.AWS_PROD_ACCOUNT_ID }}
+
+jobs:
+  test-stage-1:                                       
+    name: Teste Stage 1
+    runs-on: [tester-prod]
+    timeout-minutes: 10
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.4.1
+        with:                                    
+          access_token: ${{ github.token }}
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Building App
+        run: echo --BUILDING APP--
+
+      - name: Unit tests
+        run: echo --- RUNNING UNIT TESTS ---
+
+      - name: Sonarqube
+        run: echo --- RUNNING SONAR ---
+
+  deploy-kubernetes:
+    name: Deploy Kubernetes
+    needs: test-stage-1
+    runs-on: [deployer-dev]
+    timeout-minutes: 15
+    steps:
+      
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.4.1
+        with:                                    
+          access_token: ${{ github.token }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ env.AWS_PROD_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_PROD_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Checkout
+        uses: actions/checkout@v2
+
+##Build App##
+
+      - name: Building App
+        run: echo --BUILDING APP--
+      # - name: Build Maven
+      #   uses: comchangs/action-maven@master
+      #   with:
+      #     args: clean install -DskipTests
+
+##Build Dockerfile##
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Extract branch name
+        uses: vazco/github-actions-branch-name@v1
+        id: branch
+
+      - name: Build ECR Image
+        uses: smu-chile/aws-ecr-policy-action@master
+        with:
+          access_key_id: ${{ env.AWS_ACCESS_KEY_ID }}
+          secret_access_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          ecr_registry: ${{ steps.login-ecr.outputs.registry }}
+          repo: ${{ env.APP_NAME }}
+          region: ${{ env.AWS_REGION }}
+          tags: ${{ steps.branch.outputs.branch_name }}-${{ github.run_number }}
+          create_repo: true
+          create_policy: true
+          scan_images: true
+          ecr_policies: untagged:1 any:20
+        env:
+          DOCKER_BUILDKIT: 1
+
+      - name: Create AWS ECR policy
+        uses: hannut91/aws-cli@1.18.43
+        with:
+          args: ecr set-repository-policy --repository-name ${{ env.APP_NAME }} --policy-text "{\"Version\":\"2008-10-17\",\"Statement\":[{\"Sid\":\"AllowDevAccount\",\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"arn:aws:iam::629848764789:root\"},\"Action\":[\"ecr:GetDownloadUrlForLayer\",\"ecr:BatchGetImage\",\"ecr:BatchCheckLayerAvailability\",\"ecr:PutImage\",\"ecr:InitiateLayerUpload\",\"ecr:UploadLayerPart\",\"ecr:CompleteLayerUpload\"]}]}"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}
+
+##Prepare K8s files##
+
+      - name: Replace image name
+        env:                                                                                                          
+          RELEASE_IMAGE: ${{ steps.login-ecr.outputs.registry }}/${{ env.APP_NAME }}:${{ steps.branch.outputs.branch_name }}-${{ github.run_number }}
+        run: sed -i 's|__IMAGE__|${{ env.RELEASE_IMAGE }}|g' kubernetes/*.yaml
+
+      - name: Replace namespace
+        run: sed -i 's|__NAMESPACE__|${{ env.APP_NAMESPACE }}|g' kubernetes/*.yaml
+
+      - name: Replace app name
+        run: sed -i 's|__APP-NAME__|${{ env.APP_NAME }}|g' kubernetes/*.yaml
+
+      - name: Replace min replicas
+        run: sed -i 's|__MIN_REPLICAS__|1|g' kubernetes/*.yaml
+
+      - name: Replace max replicas
+        run: sed -i 's|__MAX_REPLICAS__|1|g' kubernetes/*.yaml
+      
+      - name: Replace ingress annotation
+        run: sed -i 's|__ENVIRONMENT__|dev|g' kubernetes/*.yaml
+
+      - name: Replace dns
+        run: sed -i 's|__DNS__|dev.amaro.pro|g' kubernetes/*.yaml
+
+##Deploy to EKS##
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ env.AWS_DEV_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_DEV_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Create NS
+        uses: kodermax/kubectl-aws-eks@master
+        with:                                                                                                         
+          args: apply -f kubernetes/*-namespace.yaml
+
+      - name: Apply configmap to Kubernetes cluster
+        uses: kodermax/kubectl-aws-eks@master
+        with:                                                            
+          args: apply -f kubernetes/*-configmap-dev.yaml
+
+      - name: Apply deployment to Kubernetes cluster
+        uses: kodermax/kubectl-aws-eks@master
+        with:                                                            
+          args: apply -f kubernetes/*-deployment.yaml
+
+      - name: Apply service to Kubernetes cluster
+        uses: kodermax/kubectl-aws-eks@master
+        with:                                                            
+          args: apply -f kubernetes/*-service.yaml
+
+      - name: Apply ingress to Kubernetes cluster
+        uses: kodermax/kubectl-aws-eks@master
+        with:                                                            
+          args: apply -f kubernetes/*-ingress.yaml
+
+      - name: Apply HPA to Kubernetes cluster
+        uses: kodermax/kubectl-aws-eks@master
+        with:                                                            
+          args: apply -f kubernetes/*-hpa.yaml
+
+      - name: Verify Kubernetes deployment
+        id: rollout-status
+        timeout-minutes: 10
+        uses: kodermax/kubectl-aws-eks@master
+        continue-on-error: true
+        with:                                                            
+          args: rollout status deploy ${{env.APP_NAME}}-deployment -n $APP_NAMESPACE
+
+      - name: Rollback to previous version
+        if: steps.rollout-status.outcome == 'failure'
+        uses: kodermax/kubectl-aws-eks@master
+        with:                                                                                                         
+          args: rollout undo deploy ${{env.APP_NAME}}-deployment -n $APP_NAMESPACE
+      
+      - name: Verify Kubernetes deployment
+        if: steps.rollout-status.outcome == 'failure'
+        uses: kodermax/kubectl-aws-eks@master
+        with:                                                            
+          args: rollout status deploy ${{env.APP_NAME}}-deployment -n $APP_NAMESPACE
+
+      - name: stop job
+        if: steps.rollout-status.outcome == 'failure'
+        run: exit 1
+
+  test-stage-2: #Secundary tests
+    name: Teste Stage 2
+    needs: [test-stage-1, deploy-kubernetes]
+    outputs:
+      job_status: ${{ job.status }}
+    runs-on: [deployer-dev]
+    timeout-minutes: 10
+    steps:
+      - name: Integration tests
+        run: echo --- RUNNING INTEGRATION TESTS ---
+
+      - name: Stress tests
+        run: echo --- RUNNING STRESS TESTS ---
+
+  rollback: #Rollback Kubernetes
+    name: Rollback
+    needs: test-stage-2
+    if: "always()&&(needs.test-stage-2.outputs.job_status=='failure')"
+    runs-on: [deployer-dev]
+    timeout-minutes: 5
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ env.AWS_DEV_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_DEV_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Rollback to previous version
+        uses: kodermax/kubectl-aws-eks@master
+        with:                                                                                                         
+          args: rollout undo deploy ${{env.APP_NAME}}-deployment -n $APP_NAMESPACE
+      
+      - name: Verify Kubernetes deployment
+        uses: kodermax/kubectl-aws-eks@master
+        with:                                                            
+          args: rollout status deploy ${{env.APP_NAME}}-deployment -n $APP_NAMESPACE

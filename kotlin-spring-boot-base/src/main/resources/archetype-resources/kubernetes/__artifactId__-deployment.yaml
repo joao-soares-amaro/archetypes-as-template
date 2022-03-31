@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: __APP-NAME__-deployment
+  namespace: __NAMESPACE__
+  labels:
+    app: __APP-NAME__
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: __APP-NAME__
+  template:
+    metadata:
+      labels:
+        app: __APP-NAME__
+    spec:
+      containers:
+        - name: __APP-NAME__
+          image: __IMAGE__
+          resources:
+           requests:
+             memory: 512Mi
+             cpu: 100m
+           limits:
+             memory: 1Gi
+             cpu: 400m
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 10
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 10
+          envFrom:
+            - configMapRef:
+                name: __APP-NAME__-config
+            - secretRef:
+                name: __APP-NAME__-secret

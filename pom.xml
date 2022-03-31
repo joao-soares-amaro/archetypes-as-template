@@ -1,0 +1,36 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.amaro.ecp</groupId>
+    <artifactId>archetypes-as-template</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>back-end-maven-archetypes-parent-pom</name>
+    <description>A parent pom for all Archetypes</description>
+    <url>https://github.com/amaroteam/back-end-maven-archetypes</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <maven-jar-plugin.version>3.2.2</maven-jar-plugin.version>
+        <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
+    </properties>
+
+    <modules>
+        <module>kotlin-spring-boot-base</module>
+    </modules>
+
+    <organization>
+        <name>AMARO</name>
+        <url>https://github.com/amaroteam</url>
+    </organization>
+
+    <scm>
+        <connection>scm:git:git@github.com:/amaroteam/back-end-base-component.git</connection>
+        <developerConnection>scm:git:git@github.com:/amaroteam/back-end-base-component.git</developerConnection>
+        <url>https://github.com/amaroteam/back-end-base-component/tree/main</url>
+    </scm>
+</project>

@@ -1,0 +1,25 @@
+version: '3.2'
+
+services:
+  ${artifactId}:
+    container_name: ${artifactId}
+    build:
+      context: .
+      dockerfile: ../../Dockerfile
+    image: ${artifactId}
+    environment:
+      - DD_AGENT_HOST
+      - DD_TRACE_AGENT_PORT
+      - AWS_FIREHOSE_CLIENT_ID
+      - AWS_FIREHOSE_CLIENT_SECRET
+    ports:
+      - 8080:8080
+      - 443:443
+    networks:
+      - ${artifactId}-network
+
+networks:
+  ${artifactId}-network:
+    driver: bridge
+    ipam:
+      driver: default

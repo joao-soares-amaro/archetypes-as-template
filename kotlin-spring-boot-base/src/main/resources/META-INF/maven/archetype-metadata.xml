@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archetype-descriptor
+        xsi:schemaLocation="https://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.1.0 http://maven.apache.org/xsd/archetype-descriptor-1.1.0.xsd"
+        name="back-end-base-component"
+        xmlns="https://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.1.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <requiredProperties>
+    <requiredProperty key="groupId"><defaultValue>${groupId}</defaultValue></requiredProperty>
+    <requiredProperty key="package"><defaultValue>${groupId}</defaultValue></requiredProperty>
+    <requiredProperty key="version"><defaultValue>0.0.1-SNAPSHOT</defaultValue></requiredProperty>
+    <requiredProperty key="java-version"><defaultValue>11</defaultValue></requiredProperty>
+    <requiredProperty key="kotlin-version"><defaultValue>1.6.20-RC</defaultValue></requiredProperty>
+    <requiredProperty key="spring-cloud-version"><defaultValue>2021.0.1</defaultValue></requiredProperty>
+    <requiredProperty key="spring-docs-version"><defaultValue>1.6.6</defaultValue></requiredProperty>
+    <requiredProperty key="mockito-kotlin-version"><defaultValue>1.6.0</defaultValue></requiredProperty>
+    <requiredProperty key="spring-native-version"><defaultValue>0.10.6</defaultValue></requiredProperty>
+    <requiredProperty key="spring-thin-layout-version"><defaultValue>1.0.28.RELEASE</defaultValue></requiredProperty>
+    <requiredProperty key="jupiter-migration-version"><defaultValue>5.0.0-M4</defaultValue></requiredProperty>
+    <requiredProperty key="mockito-inline-version"><defaultValue>4.4.0</defaultValue></requiredProperty>
+    <requiredProperty key="mainClassName">
+      <defaultValue>
+        ${artifactId.toLowerCase().replaceAll("[^\d-\w]+", "").replaceAll("^a|-a", "A").replaceAll("^b|-b", "B").replaceAll("^c|-c", "C").replaceAll("^d|-d", "D").replaceAll("^e|-e", "E").replaceAll("^f|-f", "F").replaceAll("^g|-g", "G").replaceAll("^h|-h", "H").replaceAll("^i|-i", "I").replaceAll("^j|-j", "J").replaceAll("^k|-k", "K").replaceAll("^l|-l", "L").replaceAll("^m|-m", "M").replaceAll("^n|-n", "N").replaceAll("^o|-o", "O").replaceAll("^p|-p", "P").replaceAll("^q|-q", "Q").replaceAll("^r|-r", "R").replaceAll("^s|-s", "S").replaceAll("^t|-t", "T").replaceAll("^u|-u", "U").replaceAll("^v|-v", "V").replaceAll("^w|-w", "W").replaceAll("^x|-x", "X").replaceAll("^y|-y", "Y").replaceAll("^z|-z", "Z")}
+      </defaultValue>
+    </requiredProperty>
+    <requiredProperty key="contextFolderName">
+      <defaultValue>
+        ${artifactId.toLowerCase().replaceAll("[^\d\w]+", "")}
+      </defaultValue>
+    </requiredProperty>
+  </requiredProperties>
+  <fileSets>
+    <fileSet filtered="true" encoding="UTF-8">
+      <directory>src/main/resources</directory>
+      <includes>
+        <include>**/*.yml</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="true" packaged="true" encoding="UTF-8">
+      <directory>src/main/kotlin</directory>
+      <includes>
+        <include>**/*.gitkeep</include>
+        <include>**/*.kt</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="true" packaged="true" encoding="UTF-8">
+      <directory>src/test/kotlin</directory>
+      <includes>
+        <include>**/*.kt</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="true" encoding="UTF-8">
+      <directory>.mvn/wrapper</directory>
+      <includes>
+        <include>**/*.properties</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="true" encoding="UTF-8">
+      <directory>.idea</directory>
+      <includes>
+        <include>**/*.xml</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="true" encoding="UTF-8">
+      <directory>.github/workflows</directory>
+      <includes>
+        <include>**/*.yml</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="true" encoding="UTF-8">
+      <directory>kubernetes</directory>
+      <includes>
+        <include>**/*.yaml</include>
+      </includes>
+    </fileSet>
+    <fileSet encoding="UTF-8">
+      <directory>.mvn/wrapper</directory>
+      <includes>
+        <include>**/*.jar</include>
+      </includes>
+    </fileSet>
+    <fileSet encoding="UTF-8">
+      <directory>datadog</directory>
+      <includes>
+        <include>**/*.jar</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="true" encoding="UTF-8">
+      <directory>docker/local</directory>
+      <includes>
+        <include>**/*.yml</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="true" encoding="UTF-8">
+      <directory>.idea</directory>
+      <includes>
+        <include>**/*.gitignore</include>
+      </includes>
+    </fileSet>
+    <fileSet encoding="UTF-8">
+      <directory></directory>
+      <includes>
+        <include>mvnw</include>
+        <include>mvnw.cmd</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="true" encoding="UTF-8">
+      <directory></directory>
+      <includes>
+        <include>.gitignore</include>
+        <include>Dockerfile</include>
+        <include>README.md</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+</archetype-descriptor>
