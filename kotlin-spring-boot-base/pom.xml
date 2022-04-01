@@ -3,7 +3,7 @@
     <parent>
         <groupId>com.amaro.ecp</groupId>
         <artifactId>archetypes-as-template</artifactId>
-        <version>0.2.1-SNAPSHOT</version>
+        <version>0.3.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
