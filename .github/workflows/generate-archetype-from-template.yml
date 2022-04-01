@@ -16,12 +16,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Create tag
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/v0.0.0',
+              sha: context.sha
+            })
+
       - uses: actions/setup-java@v2
         with:
           distribution: 'adopt'
           java-version: '11'
 
-      - uses: actions/github-script@v4
+      - uses: actions/github-script@v6
         id: fetch-repo-and-user-details
         with:
           script: |
