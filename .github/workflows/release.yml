@@ -6,7 +6,7 @@ concurrency:
 on:
   push:
     branches:
-      - master
+      - main
 
 env:
   GITHUB_TOKEN: ${{ secrets.PAT }}
@@ -14,7 +14,7 @@ env:
 jobs:
   release:
     name: Release
-    runs-on: ubuntu-latest
+    runs-on: [tester-prod]
     steps:
 
       - name: Checkout
@@ -36,7 +36,7 @@ jobs:
           maven-version: 3.8.2
 
       - name: Install semantic-release plugins
-        run: npm install @conveyal/maven-semantic-release -D
+        run: npm install @semantic-release/git @conveyal/maven-semantic-release -D
 
       - name: Generate release
         run: npx semantic-release --prepare @conveyal/maven-semantic-release --verify-conditions @semantic-release/github,@conveyal/maven-semantic-release --verify-release @conveyal/maven-semantic-release --use-conveyal-workflow --skip-maven-deploy
