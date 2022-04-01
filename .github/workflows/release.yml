@@ -13,7 +13,6 @@ env:
 
 jobs:
   release:
-    ${{ github.repository == 'joao-soares-amaro/archetypes' }}
     name: Release
     runs-on: ubuntu-latest
     steps:
