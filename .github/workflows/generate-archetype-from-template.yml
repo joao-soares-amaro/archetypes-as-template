@@ -51,6 +51,12 @@ jobs:
       - name: Give Maven Wrapper permission to run
         run: sudo chmod -R a+rwx mvnw
 
+      - name: Install archetypes
+        run: ./mvnw install -f pom.xml
+
+      - name: Update archetypes catalog
+        run: ./mvnw archetype:crawl
+
       - name: Create archetype
         env:
           INFO: ${{ steps.fetch-repo-and-user-details.outputs.result }}
