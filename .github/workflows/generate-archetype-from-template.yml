@@ -9,7 +9,7 @@ env:
 
 jobs:
   setup-repo:
-    if: ${{ github.repository != 'joao-soares-amaro/archetypes' }}
+    if: ${{ github.repository != 'joao-soares-amaro/archetypes-as-template' }}
     name: Setup Repo
     runs-on: ubuntu-latest
     steps:
