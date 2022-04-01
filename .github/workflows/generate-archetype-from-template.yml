@@ -1,8 +1,12 @@
 name: Execute template to populate repository
 
 on:
+  label:
+    types:
+      - created
   push:
-  workflow_dispatch:
+    branches:
+      - master
 
 env:
   GITHUB_TOKEN: ${{ secrets.PAT }}
