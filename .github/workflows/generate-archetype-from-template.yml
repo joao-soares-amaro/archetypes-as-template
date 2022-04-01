@@ -74,8 +74,9 @@ jobs:
             -DinteractiveMode=false
           
           # Delete all but tmp folder
-          shopt -s extglob
-          rm -rf .['!'.] '!'("tmp")
+          GLOBIGNORE=tmp
+          rm -rfv *
+          unset GLOBIGNORE
           # Copy generated content to root directory of repo
           cp -Rp tmp/$REPO_NAME/* .
           # Delete tmp folder
