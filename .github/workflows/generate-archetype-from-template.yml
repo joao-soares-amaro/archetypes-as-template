@@ -1,0 +1,81 @@
+name: Execute template to populate repository
+
+on:
+  push:
+  workflow_dispatch:
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PAT }}
+
+jobs:
+  setup-repo:
+    if: ${{ github.repository != 'joao-soares-amaro/archetypes' }}
+    name: Setup Repo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '11'
+
+      - uses: actions/github-script@v4
+        id: fetch-repo-and-user-details
+        with:
+          script: |
+            const query = `query($owner:String!, $name:String!) {
+              repository(owner:$owner, name:$name) {
+                name
+                description
+                owner {
+                  login
+                  ... on User {
+                    name
+                  }
+                  ... on Organization {
+                    name
+                  }
+                }
+              }
+            }`;
+            const variables = {
+              owner: context.repo.owner,
+              name: context.repo.repo
+            }
+            const result = await github.graphql(query, variables)
+            console.log(result)
+            return result
+
+      - name: Give Maven Wrapper permission to run
+        run: sudo chmod -R a+rwx mvnw
+
+      - name: Create archetype
+        env:
+          INFO: ${{ steps.fetch-repo-and-user-details.outputs.result }}
+        run: |
+          export REPO_NAME=$(echo $INFO | jq -r '.repository.name')
+          # Generate project from archetype
+          ./mvnw archetype:generate \
+            -DarchetypeGroupId="com.amaro.ecp" \
+            -DarchetypeArtifactId="$(echo $INFO | jq -r .repository.description)" \
+            -DgroupId="com.amaro.ecp" \
+            -Dpackagename="com.amaro.ecp" \
+            -DartifactId="$REPO_NAME" \
+            -Dversion="0.0.1-SNAPSHOT" \
+            -DoutputDirectory="./tmp" \
+            -DinteractiveMode=false
+          
+          # Delete all but tmp folder
+          rm -rfv .[!.] !("tmp")
+          # Copy generated content to root directory of repo
+          cp -Rp tmp/$REPO_NAME/* .
+          # Delete tmp folder
+          rm -rf .[!.] tmp
+
+      - name: Force push new repo contents
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Initial archetype structure"
+          push_options: --force
