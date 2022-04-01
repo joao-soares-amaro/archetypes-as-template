@@ -4,7 +4,7 @@
 
     <groupId>com.amaro.ecp</groupId>
     <artifactId>archetypes-as-template</artifactId>
-    <version>0.4.2</version>
+    <version>0.4.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>back-end-maven-archetypes-parent-pom</name>
