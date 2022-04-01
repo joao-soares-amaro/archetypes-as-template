@@ -14,7 +14,7 @@ env:
 jobs:
   release:
     name: Release
-    runs-on: [tester-prod]
+    runs-on: ubuntu-latest
     steps:
 
       - name: Checkout
