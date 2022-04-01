@@ -91,7 +91,7 @@ jobs:
           rm -rfv *
           unset GLOBIGNORE
           # Copy generated content to root directory of repo
-          cp -Rpv tmp/$REPO_NAME/* .
+          cp -rv tmp/$REPO_NAME/. .
           # Delete tmp folder
           rm -rfv tmp
 
