@@ -87,7 +87,7 @@ jobs:
             -DinteractiveMode=false
           
           # Delete all but tmp folder
-          GLOBIGNORE=tmp:.git:.github/workflows/release.yml
+          GLOBIGNORE=tmp:.git
           rm -rfv *
           unset GLOBIGNORE
           # Copy generated content to root directory of repo
