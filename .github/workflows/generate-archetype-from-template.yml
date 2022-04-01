@@ -74,7 +74,7 @@ jobs:
             -DinteractiveMode=false
           
           # Delete all but tmp folder
-          GLOBIGNORE=tmp
+          GLOBIGNORE=tmp:.git
           rm -rfv *
           unset GLOBIGNORE
           # Copy generated content to root directory of repo
