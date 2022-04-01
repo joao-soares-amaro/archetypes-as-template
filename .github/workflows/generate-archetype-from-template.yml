@@ -90,13 +90,13 @@ jobs:
           commit_message: "Initial archetype structure"
           push_options: --force
 
-      - name: Create tag
-        uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.git.createRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: 'refs/tags/v0.0.0',
-              sha: context.sha
-            })
+#      - name: Create tag
+#        uses: actions/github-script@v6
+#        with:
+#          script: |
+#            github.rest.git.createRef({
+#              owner: context.repo.owner,
+#              repo: context.repo.repo,
+#              ref: 'refs/tags/v0.0.0',
+#              sha: context.sha
+#            })
