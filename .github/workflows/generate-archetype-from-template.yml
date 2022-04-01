@@ -27,11 +27,6 @@ jobs:
               sha: context.sha
             })
 
-      - uses: actions/setup-java@v2
-        with:
-          distribution: 'adopt'
-          java-version: '11'
-
       - uses: actions/github-script@v6
         id: fetch-repo-and-user-details
         with:
@@ -59,14 +54,21 @@ jobs:
             console.log(result)
             return result
 
-      - name: Give Maven Wrapper permission to run
-        run: sudo chmod -R a+rwx mvnw
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '11'
+
+      - name: Set up Maven
+        uses: stCarolas/setup-maven@v4
+        with:
+          maven-version: 3.8.2
 
       - name: Install archetypes
-        run: ./mvnw install -f pom.xml
+        run: mvn install -f pom.xml
 
       - name: Update archetypes catalog
-        run: ./mvnw archetype:crawl
+        run: mvn archetype:crawl
 
       - name: Create archetype
         env:
@@ -74,7 +76,7 @@ jobs:
         run: |
           export REPO_NAME=$(echo $INFO | jq -r '.repository.name')
           # Generate project from archetype
-          ./mvnw archetype:generate \
+          mvn archetype:generate \
             -DarchetypeGroupId="com.amaro.ecp" \
             -DarchetypeArtifactId="$(echo $INFO | jq -r .repository.description)" \
             -DgroupId="com.amaro.ecp" \
@@ -89,9 +91,9 @@ jobs:
           rm -rfv *
           unset GLOBIGNORE
           # Copy generated content to root directory of repo
-          cp -Rp tmp/$REPO_NAME/* .
+          cp -Rpv tmp/$REPO_NAME/* .
           # Delete tmp folder
-          rm -rf tmp
+          rm -rfv tmp
 
       - name: Force push new repo contents
         uses: stefanzweifel/git-auto-commit-action@v4
